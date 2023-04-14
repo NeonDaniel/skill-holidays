@@ -25,8 +25,10 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import json
 
 import requests
+from os.path import join, dirname
 from ovos_utils.log import LOG
 from ovos_workshop.skills.common_query_skill import CommonQuerySkill
 
@@ -35,6 +37,7 @@ class HolidaySkill(CommonQuerySkill):
     def __init__(self):
         super(HolidaySkill, self).__init__(name="HolidaySkill")
         self.holidays = {}
+        self._cache_file = join(dirname(__file__), "holidays.json")
 
     @property
     def nager_url(self):
@@ -54,7 +57,16 @@ class HolidaySkill(CommonQuerySkill):
                                          {}).get('country',
                                                  {}).get('code') or "US"
 
-    def _update_holidays(self, locale: str):
+    def initialize(self):
+        try:
+            with open(self._cache_file) as f:
+                self.holidays = json.load(f)
+        except Exception as e:
+            LOG.error(e)
+
+        self._update_holidays()
+
+    def _update_holidays(self, locale: str = None):
         """
         Update holidays for the configured locale. Cached on local filesystem
         for future references.
@@ -67,9 +79,16 @@ class HolidaySkill(CommonQuerySkill):
             holidays = resp.json()
             LOG.debug(holidays)
             self.holidays[locale] = holidays
-        # TODO: Cache
+        self._cache_holidays()
 
-    def holidays_by_date(self, locale: str) -> dict:
+    def _cache_holidays(self):
+        """
+        Write current holidays to disk for future reference
+        """
+        with open(self._cache_file, 'w+') as f:
+            json.dump(self.holidays, f, indent=2)
+
+    def holidays_by_date(self, locale: str = None) -> dict:
         """
         Get a dict of holidays, indexed by date 'YYYY-MM-DD'
         :param locale: locale to query holidays for
