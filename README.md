@@ -1,12 +1,15 @@
-# <img src='https://0000.us/klatchat/app/files/neon_images/icons/neon_skill.png' card_color="#FF8600" width="50" style="vertical-align:bottom">{title}
+# <img src='./logo.svg' card_color="#FF8600" width="50" style="vertical-align:bottom">Holidays
 ## Summary
-{summary}
+Skill to provide local holidays
 
 ## Description
-{description}
+Queries a database of known holidays for different locales. This skill can provide
+dates for requested holidays and return holidays on a requested date.
 
 ## Examples
-{list of example utterances}
+- When is Valentine's Day?
+- Tell me when April Fool's Day is.
+- Is June nineteenth a holiday?
 
 ## Contact Support
 Use the [link](https://neongecko.com/ContactUs) or [submit an issue on GitHub](https://help.github.com/en/articles/creating-an-issue)
@@ -14,11 +17,14 @@ Use the [link](https://neongecko.com/ContactUs) or [submit an issue on GitHub](h
 ## Credits
 
 [NeonGeckoCom](https://github.com/NeonGeckoCom)
-{author_name}
+[NeonDaniel](https://github.com/NeonDaniel)
 
 ## Category
-**category** {categories}
+**Information**
+Daily
 
 ## Tags
-#tag
-#tag2
+#NeonGecko Original
+#Neon AI
+#Holiday
+#Dates

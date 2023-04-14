@@ -29,10 +29,10 @@
 from neon_utils.skills.neon_skill import NeonSkill
 
 
-class NewSkill(NeonSkill):  # TODO: Update this class name
+class HolidaySkill(NeonSkill):
     def __init__(self):
-        super(NewSkill, self).__init__(name="NewSkill")  # TODO: Update passed name (usually matches class name)
+        super(HolidaySkill, self).__init__(name="HolidaySkill")
 
 
 def create_skill():
-    return NewSkill()
+    return HolidaySkill()

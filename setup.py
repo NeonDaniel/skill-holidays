@@ -29,10 +29,10 @@
 from setuptools import setup
 from os import getenv, path, walk
 
-SKILL_NAME = ""  # TODO: Name skill like "skill-my_awesome_skill"
+SKILL_NAME = "skill-holidays"
 SKILL_PKG = SKILL_NAME.replace('-', '_')
 # skill_id=package_name:SkillClass
-PLUGIN_ENTRY_POINT = f'{SKILL_NAME}.neongeckocom={SKILL_PKG}:NewSkill'  # TODO: Update "NewSkill" to match skill class
+PLUGIN_ENTRY_POINT = f'{SKILL_NAME}.neongeckocom={SKILL_PKG}:HolidaySkill'
 
 
 def get_requirements(requirements_filename: str):
@@ -83,17 +83,11 @@ with open("./version.py", "r", encoding="utf-8") as v:
             else:
                 version = line.split("'")[1]
 
-# TODO: Update the setup parameters:
-#   name: what is published to PyPI to install, usually the same as the skill name
-#   url: The URL for PyPI to include in the package listing, usually a git repository
-#   license: License identifier for the contents of LICENSE.md
-#   author: Name of the skill author, generally a GitHub username
-#   author_email: Email that is listed publicly on PyPI
 setup(
     name=f"neon-{SKILL_NAME}",
     version=version,
     url=f'https://github.com/NeonGeckoCom/{SKILL_NAME}',
-    license='BSD-3-Clause',  # TODO: Make sure this matches `LICENSE.md`
+    license='BSD-3-Clause',
     install_requires=get_requirements("requirements.txt"),
     author='Neongecko',
     author_email='developers@neon.ai',
