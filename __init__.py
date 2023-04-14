@@ -26,12 +26,73 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from neon_utils.skills.neon_skill import NeonSkill
+import requests
+from ovos_utils.log import LOG
+from ovos_workshop.skills.common_query_skill import CommonQuerySkill
 
 
-class HolidaySkill(NeonSkill):
+class HolidaySkill(CommonQuerySkill):
     def __init__(self):
         super(HolidaySkill, self).__init__(name="HolidaySkill")
+        self.holidays = {}
+
+    @property
+    def nager_url(self):
+        """
+        Get the base URL to use for holiday lookups.
+        """
+        return self.settings.get('url') or "https://date.nager.at/api/v3"
+
+    @property
+    def default_locale(self):
+        """
+        Get the default locale to use from a user's profile (if available) or
+        global configuration.
+        """
+        return self.location.get('city',
+                                 {}).get('state',
+                                         {}).get('country',
+                                                 {}).get('code') or "US"
+
+    def _update_holidays(self, locale: str):
+        """
+        Update holidays for the configured locale. Cached on local filesystem
+        for future references.
+        """
+        locale = locale or self.default_locale
+
+        url = f"{self.nager_url}/NextPublicHolidays/{locale}"
+        resp = requests.get(url)
+        if resp.ok:
+            holidays = resp.json()
+            LOG.debug(holidays)
+            self.holidays[locale] = holidays
+        # TODO: Cache
+
+    def holidays_by_date(self, locale: str) -> dict:
+        """
+        Get a dict of holidays, indexed by date 'YYYY-MM-DD'
+        :param locale: locale to query holidays for
+        :return: dict of holidays by date
+        """
+        locale = locale or self.default_locale
+        if locale not in self.holidays:
+            LOG.info(f"Updating holidays for: {locale}")
+            self._update_holidays(locale)
+
+        return {holiday['date']: holiday for holiday in self.holidays[locale]}
+
+    def holidays_by_name(self, locale: str) -> dict:
+        """
+        Get a dict of holidays, indexed by name
+        :param locale: locale to query holidays for
+        :return: dict of holidays by name
+        """
+        return {holiday['name'].lower(): holiday
+                for holiday in self.holidays[locale]}
+
+    def CQS_match_query_phrase(self, phrase):
+        pass
 
 
 def create_skill():
