@@ -97,6 +97,10 @@ class TestSkill(unittest.TestCase):
         self.assertIsInstance(juneteenth, dict)
         self.assertEqual(juneteenth['name'], "Juneteenth")
 
+    def test_cache_holidays(self):
+        # TODO
+        pass
+
 
 if __name__ == '__main__':
     pytest.main()
