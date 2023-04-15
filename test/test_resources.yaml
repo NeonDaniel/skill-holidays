@@ -11,13 +11,15 @@ vocab:
 # dialog is .dialog file basenames (case-sensitive)
 dialog:
   - "holiday_date"
+  - "no_holiday_on_date"
 
 # regex entities, not necessarily filenames
 regex: []
 
 intents:
   # Padatious intents are the `.intent` file names
-  padatious: []
+  padatious:
+    - holiday_on_date.intent
 
   # Adapt intents are the names passed to `IntentBuilder`
   adapt: []

@@ -33,8 +33,11 @@ from datetime import datetime
 from os.path import join, dirname
 from ovos_utils.log import LOG
 from lingua_franca.format import nice_date
+from lingua_franca.parse import extract_datetime
 from ovos_workshop.skills.common_query_skill import CommonQuerySkill, \
     CQSMatchLevel
+
+from mycroft.skills.mycroft_skill.decorators import intent_file_handler
 
 
 class HolidaySkill(CommonQuerySkill):
@@ -135,6 +138,29 @@ class HolidaySkill(CommonQuerySkill):
             return None
         resp = self._format_response(match)
         return match['name'], match_level, resp
+
+    @intent_file_handler("holiday_on_date.intent")
+    def handle_holiday_on_date(self, message):
+        """
+        Handle a user request for a holiday on a particular date
+        :param message: Message associated with request
+        """
+        requested_date = message.data['date']
+        requested_date = extract_datetime(requested_date)
+        if requested_date:
+            requested_date = requested_date[0]
+        else:
+            LOG.warning(f"Holiday request without valid date: {requested_date}")
+            return
+
+        formatted_date = requested_date.strftime("%Y-%m-%d")
+        matched_holiday = self.holidays_by_date().get(formatted_date)
+        if not matched_holiday:
+            # TODO: Check other locales
+            self.speak_dialog("no_holiday_on_date",
+                              {"date": nice_date(requested_date)})
+            return
+        self.speak(self._format_response(matched_holiday))
 
     def _format_response(self, holiday: dict) -> str:
         """

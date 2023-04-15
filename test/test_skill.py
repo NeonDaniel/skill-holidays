@@ -39,6 +39,9 @@ from datetime import datetime
 
 from mycroft.skills.skill_loader import SkillLoader
 
+from lingua_franca import load_language
+load_language("en-us")
+
 
 class TestSkill(unittest.TestCase):
 
@@ -102,8 +105,6 @@ class TestSkill(unittest.TestCase):
         pass
 
     def test_format_response(self):
-        from lingua_franca import load_language
-        load_language("en-us")
         real_render = self.skill.dialog_renderer.render
         self.skill.dialog_renderer.render = Mock()
         test_holiday = self.skill.holidays["US"][0]
@@ -116,6 +117,28 @@ class TestSkill(unittest.TestCase):
         self.assertIsInstance(call[1]["date"], str)
 
         self.skill.dialog_renderer.render = real_render
+
+    def test_handle_holiday_on_date(self):
+        from lingua_franca.parse import extract_datetime
+        from lingua_franca.format import nice_date
+        real_format = self.skill._format_response
+        self.skill._format_response = Mock(return_value="test")
+
+        valid_test_message = Message("test", {"date": "january first"})
+        invalid_test_message = Message("test", {"date": "january 2"})
+
+        # Test valid request
+        self.skill.handle_holiday_on_date(valid_test_message)
+        self.skill._format_response.assert_called_once()
+        self.skill.speak.assert_called_once_with("test")
+
+        # Test no holiday
+        self.skill.handle_holiday_on_date(invalid_test_message)
+        self.skill.speak_dialog.assert_called_once_with(
+            "no_holiday_on_date",
+            {"date": nice_date(extract_datetime("january 2")[0])})
+
+        self.skill._format_response = real_format
 
 
 if __name__ == '__main__':
