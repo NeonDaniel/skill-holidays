@@ -5,10 +5,12 @@ languages:
   - "en-us"
 
 # vocab is lowercase .voc file basenames
-vocab: []
+vocab:
+  - "when"
 
 # dialog is .dialog file basenames (case-sensitive)
-dialog: []
+dialog:
+  - "holiday_date"
 
 # regex entities, not necessarily filenames
 regex: []

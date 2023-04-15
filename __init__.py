@@ -25,12 +25,16 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import json
 
+import json
 import requests
+
+from datetime import datetime
 from os.path import join, dirname
 from ovos_utils.log import LOG
-from ovos_workshop.skills.common_query_skill import CommonQuerySkill
+from lingua_franca.format import nice_date
+from ovos_workshop.skills.common_query_skill import CommonQuerySkill, \
+    CQSMatchLevel
 
 
 class HolidaySkill(CommonQuerySkill):
@@ -101,17 +105,51 @@ class HolidaySkill(CommonQuerySkill):
 
         return {holiday['date']: holiday for holiday in self.holidays[locale]}
 
-    def holidays_by_name(self, locale: str) -> dict:
+    def holidays_by_name(self, locale: str = None) -> dict:
         """
         Get a dict of holidays, indexed by name
         :param locale: locale to query holidays for
         :return: dict of holidays by name
         """
+        locale = locale or self.default_locale
+        if locale not in self.holidays:
+            LOG.info(f"Updating holidays for: {locale}")
+            self._update_holidays(locale)
+
         return {holiday['name'].lower(): holiday
                 for holiday in self.holidays[locale]}
 
     def CQS_match_query_phrase(self, phrase):
-        pass
+        match_level = CQSMatchLevel.GENERAL
+        if self.voc_match(phrase, "when"):
+            # If we find a holiday, the request probably looks like: when is x
+            match_level = CQSMatchLevel.EXACT
+        match = None
+        holiday_dict = self.holidays_by_name()
+        for holiday in holiday_dict.keys():
+            if holiday in phrase:
+                LOG.debug(f"matched: {holiday} with confidence: {match_level}")
+                match = holiday_dict[holiday]
+                break
+        if not match:
+            return None
+        resp = self._format_response(match)
+        return match['name'], match_level, resp
+
+    def _format_response(self, holiday: dict) -> str:
+        """
+        Get a speakable response for the given holiday
+        :param holiday: dict holiday from `self.holidays`
+        :return: speakable dialog string
+        """
+        holiday_name = holiday['name']
+        year, month, day = holiday['date'].split('-')
+        holiday_date = datetime(year=int(year), month=int(month), day=int(day))
+        spoken_date = nice_date(holiday_date)
+        dialog = self.dialog_renderer.render("holiday_date",
+                                             {"holiday": holiday_name,
+                                              "date": spoken_date})
+        return dialog
 
 
 def create_skill():

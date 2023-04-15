@@ -101,6 +101,22 @@ class TestSkill(unittest.TestCase):
         # TODO
         pass
 
+    def test_format_response(self):
+        from lingua_franca import load_language
+        load_language("en-us")
+        real_render = self.skill.dialog_renderer.render
+        self.skill.dialog_renderer.render = Mock()
+        test_holiday = self.skill.holidays["US"][0]
+        holiday_name = test_holiday['name']
+        self.skill._format_response(test_holiday)
+        self.skill.dialog_renderer.render.assert_called_once()
+        call = self.skill.dialog_renderer.render.call_args[0]
+        self.assertEqual(call[0], "holiday_date")
+        self.assertEqual(call[1]["holiday"], holiday_name)
+        self.assertIsInstance(call[1]["date"], str)
+
+        self.skill.dialog_renderer.render = real_render
+
 
 if __name__ == '__main__':
     pytest.main()
