@@ -46,6 +46,9 @@ class HolidaySkill(CommonQuerySkill):
         self.holidays = {}
         self._cache_file = join(dirname(__file__), "holidays.json")
 
+        # Lower base confidence to prevent handling all holiday-related queries
+        self.level_confidence[CQSMatchLevel.GENERAL] = 0.3
+
     @property
     def nager_url(self):
         """
