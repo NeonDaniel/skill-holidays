@@ -20,6 +20,23 @@
 #        - expected_vocab_key: expected_vocab_value
 #        - expected_entity_key: expected_entity_value
 
+en-us:
+  holiday_on_date.intent:
+    - what holiday is on february 14:
+      - date: february 14
+    - what holiday is january first:
+      - date:  january first
+    - what holiday is january 2:
+      - date: january 2
+
+common query:
+  en-us:
+    - when is memorial day:
+        min_confidence: 0.9
+    - what is memorial day:
+        min_confidence: 0.5
+        max_confidence: 0.8
+
 # Test phrases that should NOT match any skill intent:
 #unmatched intents:
 #  lang:

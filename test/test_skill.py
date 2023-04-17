@@ -35,9 +35,12 @@ from os.path import dirname, join, exists
 from mock import Mock
 from mycroft_bus_client import Message
 from ovos_utils.messagebus import FakeBus
-from neon_utils.configuration_utils import get_neon_local_config, get_neon_user_config
+from datetime import datetime
 
 from mycroft.skills.skill_loader import SkillLoader
+
+from lingua_franca import load_language
+load_language("en-us")
 
 
 class TestSkill(unittest.TestCase):
@@ -56,8 +59,6 @@ class TestSkill(unittest.TestCase):
             mkdir(cls.test_fs)
 
         # Override the configuration and fs paths to use the test directory
-        cls.skill.local_config = get_neon_local_config(cls.test_fs)
-        cls.skill.user_config = get_neon_user_config(cls.test_fs)
         cls.skill.settings_write_path = cls.test_fs
         cls.skill.file_system.path = cls.test_fs
         cls.skill._init_settings()
@@ -67,30 +68,77 @@ class TestSkill(unittest.TestCase):
         cls.skill.speak = Mock()
         cls.skill.speak_dialog = Mock()
 
-        # TODO: Put any skill method overrides here
-
     def setUp(self):
         self.skill.speak.reset_mock()
         self.skill.speak_dialog.reset_mock()
-
-        # TODO: Put any cleanup here that runs before each test case
-
-    def tearDown(self) -> None:
-        # TODO: Put any cleanup here that runs after each test case
-        pass
 
     @classmethod
     def tearDownClass(cls) -> None:
         shutil.rmtree(cls.test_fs)
 
     def test_00_skill_init(self):
-        # Test any parameters expected to be set in init or initialize methods
-        from neon_utils.skills import NeonSkill
+        self.assertIsInstance(self.skill.nager_url, str)
+        self.assertIsInstance(self.skill.default_locale, str)
+        self.assertIsInstance(self.skill.holidays, dict)
 
-        self.assertIsInstance(self.skill, NeonSkill)
-        # TODO: Test parameters declared in skill init/initialize here
+    def test_update_holidays(self):
+        self.skill._update_holidays("US")
+        self.assertIsInstance(self.skill.holidays["US"], list)
 
-    # TODO: Add tests for all intent handlers and support methods here
+    def test_holidays_by_date(self):
+        this_year = datetime.now().year
+        if datetime.now() > datetime.now().replace(month=12, day=25):
+            this_year += 1
+        christmas = self.skill.holidays_by_date("US")[f"{this_year}-12-25"]
+        self.assertIsInstance(christmas, dict)
+        self.assertEqual(christmas['name'], "Christmas Day")
+
+        # TODO: Test other locales
+
+    def test_holidays_by_name(self):
+        juneteenth = self.skill.holidays_by_name("US")["juneteenth"]
+        self.assertIsInstance(juneteenth, dict)
+        self.assertEqual(juneteenth['name'], "Juneteenth")
+
+    def test_cache_holidays(self):
+        # TODO
+        pass
+
+    def test_format_response(self):
+        real_render = self.skill.dialog_renderer.render
+        self.skill.dialog_renderer.render = Mock()
+        test_holiday = self.skill.holidays["US"][0]
+        holiday_name = test_holiday['name']
+        self.skill._format_response(test_holiday)
+        self.skill.dialog_renderer.render.assert_called_once()
+        call = self.skill.dialog_renderer.render.call_args[0]
+        self.assertEqual(call[0], "holiday_date")
+        self.assertEqual(call[1]["holiday"], holiday_name)
+        self.assertIsInstance(call[1]["date"], str)
+
+        self.skill.dialog_renderer.render = real_render
+
+    def test_handle_holiday_on_date(self):
+        from lingua_franca.parse import extract_datetime
+        from lingua_franca.format import nice_date
+        real_format = self.skill._format_response
+        self.skill._format_response = Mock(return_value="test")
+
+        valid_test_message = Message("test", {"date": "january first"})
+        invalid_test_message = Message("test", {"date": "january 2"})
+
+        # Test valid request
+        self.skill.handle_holiday_on_date(valid_test_message)
+        self.skill._format_response.assert_called_once()
+        self.skill.speak.assert_called_once_with("test")
+
+        # Test no holiday
+        self.skill.handle_holiday_on_date(invalid_test_message)
+        self.skill.speak_dialog.assert_called_once_with(
+            "no_holiday_on_date",
+            {"date": nice_date(extract_datetime("january 2")[0])})
+
+        self.skill._format_response = real_format
 
 
 if __name__ == '__main__':
