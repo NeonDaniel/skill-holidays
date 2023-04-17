@@ -1,6 +1,6 @@
 {
     "title": "Holidays",
-    "url": "https://github.com/NeonDaniel/skill-holidays",
+    "url": "https://github.com/NeonGeckoCom/skill-holidays",
     "summary": "Skill to provide local holidays",
     "short_description": "Skill to provide local holidays",
     "description": "Queries a database of known holidays for different locales. This skill can provide dates for requested holidays and return holidays on a requested date.",
@@ -14,7 +14,7 @@
     "systemDeps": false,
     "requirements": {
         "python": [
-            "ovos-lingua-franca~=0.4, >=0.4.7",
+            "ovos-lingua-franca~=0.4, >=0.4.6",
             "ovos-workshop~=0.0.11,>=0.0.12a4",
             "requests~=2.0"
         ],
@@ -48,6 +48,6 @@
         "NeonDaniel"
     ],
     "skillname": "skill-holidays",
-    "authorname": "NeonDaniel",
+    "authorname": "NeonGeckoCom",
     "foldername": null
 }
